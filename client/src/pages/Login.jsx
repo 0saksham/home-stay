@@ -5,14 +5,11 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../utils/api';
 import AnimatedContent from '../components/ReactBits/Animations/AnimatedContent/AnimatedContent';
 
-/* ── Step indicator ── */
+/* ── Gold dot step indicator ── */
 const BookingSteps = ({ active }) => {
   const steps = ['Login', 'Profile', 'Select Room', 'Confirm'];
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '24px',
-      marginBottom: '64px', justifyContent: 'center', flexWrap: 'wrap',
-    }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '64px', justifyContent: 'center', flexWrap: 'wrap' }}>
       {steps.map((step, i) => {
         const done = i < active;
         const current = i === active;
@@ -21,17 +18,13 @@ const BookingSteps = ({ active }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
                 width: '8px', height: '8px', borderRadius: '50%',
-                background: done ? '#C9A84C' : current ? '#C9A84C' : 'rgba(139,134,128,0.3)',
-                flexShrink: 0,
-                boxShadow: current ? '0 0 0 2px rgba(201,168,76,0.25)' : 'none',
+                background: done || current ? '#C9A84C' : 'rgba(139,134,128,0.3)',
+                boxShadow: current ? '0 0 0 3px rgba(201,168,76,0.2)' : 'none',
                 transition: 'all 0.4s ease',
               }} />
               <span style={{
-                fontFamily: '"Jost", sans-serif',
-                fontWeight: current ? 300 : 200,
-                fontSize: '10px',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
+                fontFamily: '"Jost", sans-serif', fontWeight: current ? 300 : 200,
+                fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: done || current ? (current ? '#C9A84C' : '#0A0A0A') : '#8B8680',
                 transition: 'color 0.4s ease',
               }}>{step}</span>
@@ -50,194 +43,265 @@ const BookingSteps = ({ active }) => {
   );
 };
 
+/* ── Shared style tokens ── */
+const labelStyle = {
+  fontFamily: '"Jost", sans-serif', fontWeight: 200,
+  fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase',
+  color: '#8B8680', display: 'block', marginBottom: '8px',
+};
+const inputStyle = {
+  width: '100%', background: 'transparent',
+  border: 'none', borderBottom: '1px solid #8B8680',
+  padding: '14px 0',
+  fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: '22px',
+  color: '#0A0A0A', outline: 'none', borderRadius: 0,
+  transition: 'border-color 0.3s ease', letterSpacing: '0.02em',
+};
+const primaryBtn = {
+  width: '100%', padding: '18px 0', background: '#0A0A0A',
+  border: 'none', cursor: 'pointer',
+  fontFamily: '"Jost", sans-serif', fontWeight: 300,
+  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+  color: '#F8F5F0', transition: 'background 0.4s ease',
+};
+
 const Login = () => {
   const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1);
+  const [email,  setEmail]  = useState('');
+  const [otp,    setOtp]    = useState('');
+  const [step,   setStep]   = useState(1);   // 1 = enter details, 2 = enter OTP
   const [loading, setLoading] = useState(false);
-  const [devOtp, setDevOtp] = useState(null);
+  const [devOtp,  setDevOtp]  = useState(null);
 
   const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  const inputStyle = {
-    width: '100%',
-    background: 'transparent',
-    border: 'none',
-    borderBottom: '1px solid #8B8680',
-    padding: '16px 0',
-    fontFamily: '"Cormorant Garamond", serif',
-    fontWeight: 300,
-    fontSize: '24px',
-    color: '#0A0A0A',
-    outline: 'none',
-    borderRadius: 0,
-    transition: 'border-color 0.3s ease',
-    letterSpacing: '0.02em',
-  };
-  const labelStyle = {
-    fontFamily: '"Jost", sans-serif', fontWeight: 200,
-    fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#8B8680', display: 'block', marginBottom: '8px',
-  };
-
+  /* ── Step 1: request OTP ── */
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (mobile.length !== 10) { toast.error('Enter a valid 10-digit mobile number'); return; }
+    if (mobile.replace(/\D/g, '').length !== 10) {
+      toast.error('Enter a valid 10-digit mobile number');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Enter a valid email address');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await api.post('/auth/send-otp', { mobile });
-      toast.success('OTP sent');
+      const res = await api.post('/auth/send-otp', {
+        mobile: mobile.replace(/\D/g, ''),
+        email:  email.trim().toLowerCase(),
+      });
+      toast.success(res.data.devOtp ? 'OTP shown below (dev mode)' : `OTP sent to ${email}`);
       setStep(2);
       if (res.data.devOtp) setDevOtp(res.data.devOtp);
-    } catch { toast.error('Failed to send OTP. Try again.'); }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to send OTP. Try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  /* ── Step 2: verify OTP ── */
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length !== 6) { toast.error('Enter the 6-digit OTP'); return; }
+    if (otp.replace(/\D/g, '').length !== 6) {
+      toast.error('Enter the 6-digit OTP from your email');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await api.post('/auth/verify-otp', { mobile, otp });
+      const res = await api.post('/auth/verify-otp', {
+        mobile: mobile.replace(/\D/g, ''),
+        email:  email.trim().toLowerCase(),
+        otp:    otp.replace(/\D/g, ''),
+      });
       login(res.data.token, res.data.user);
-      toast.success('Verified');
-      navigate(res.data.isNewUser ? '/profile' : (location.state?.from?.pathname || '/booking'));
-    } catch (err) { toast.error(err.response?.data?.error || 'Invalid OTP'); }
-    finally { setLoading(false); }
+      toast.success('Email verified ✓');
+      navigate(res.data.isNewUser
+        ? '/profile'
+        : (location.state?.from?.pathname || '/booking'));
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Invalid OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{
-      minHeight: '100vh',
-      background: '#F8F5F0',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
+      minHeight: '100vh', background: '#F8F5F0',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
       padding: '120px 8.33% 80px',
       scrollSnapAlign: 'start',
     }}>
       <BookingSteps active={0} />
 
-      <AnimatedContent distance={40} direction="vertical" reverse={false}
-        config={{ tension: 80, friction: 20 }} initialOpacity={0} animateOpacity scale={0.97} animateScale>
+      <AnimatedContent
+        distance={40} direction="vertical" reverse={false}
+        config={{ tension: 80, friction: 20 }} initialOpacity={0}
+        animateOpacity scale={0.97} animateScale
+      >
         <div style={{ maxWidth: '480px', width: '100%' }}>
+
           {/* Eyebrow */}
           <span style={{
             fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '10px',
             letterSpacing: '0.2em', textTransform: 'uppercase',
             color: '#C9A84C', display: 'block', marginBottom: '24px',
           }}>
-            {step === 1 ? 'Step 1 of 4' : 'Verify Your Number'}
+            {step === 1 ? 'Step 1 of 4' : 'Verify Your Email'}
           </span>
 
+          {/* Heading */}
           <h1 style={{
             fontFamily: '"Cormorant Garamond", serif', fontWeight: 300,
             fontSize: '52px', lineHeight: 1.05, letterSpacing: '-0.01em',
             color: '#0A0A0A', marginBottom: '8px',
           }}>
-            {step === 1 ? <>Welcome<br /><em>Back</em></> : <>Enter<br /><em>Your OTP</em></>}
+            {step === 1
+              ? <><span>Welcome</span><br /><em style={{ color: '#C9A84C' }}>Back</em></>
+              : <><span>Enter</span><br /><em style={{ color: '#C9A84C' }}>Your Code</em></>}
           </h1>
 
           <div style={{ width: '40px', height: '1px', background: '#C9A84C', margin: '32px 0 48px' }} />
 
-          {/* DEV banner */}
+          {/* DEV MODE banner */}
           {devOtp && (
             <div style={{
-              background: 'rgba(201,168,76,0.08)',
+              background: 'rgba(201,168,76,0.07)',
               border: '1px solid rgba(201,168,76,0.3)',
-              padding: '12px 16px',
-              marginBottom: '32px',
-              fontFamily: '"Jost", sans-serif', fontWeight: 300,
-              fontSize: '12px', letterSpacing: '0.1em',
-              color: '#C9A84C',
+              padding: '14px 18px', marginBottom: '32px',
+              display: 'flex', alignItems: 'center', gap: '12px',
             }}>
-              DEV MODE — OTP: <strong>{devOtp}</strong>
+              <span style={{ fontSize: '18px' }}>🧪</span>
+              <span style={{
+                fontFamily: '"Jost", sans-serif', fontWeight: 300,
+                fontSize: '12px', letterSpacing: '0.1em', color: '#C9A84C',
+              }}>
+                DEV MODE — Your OTP is <strong style={{ fontSize: '16px', letterSpacing: '0.15em' }}>{devOtp}</strong>
+              </span>
             </div>
           )}
 
-          {step === 1 ? (
-            <form onSubmit={handleSendOtp}>
-              <label style={labelStyle}>Mobile Number</label>
-              <div style={{ display: 'flex', alignItems: 'baseline', borderBottom: '1px solid #8B8680' }}>
-                <span style={{
-                  fontFamily: '"Jost", sans-serif', fontWeight: 300,
-                  fontSize: '16px', color: '#8B8680', paddingBottom: '16px',
-                  paddingRight: '8px', paddingTop: '16px', flexShrink: 0,
-                }}>+91</span>
+          {/* ── STEP 1: Mobile + Email form ── */}
+          {step === 1 && (
+            <form onSubmit={handleSendOtp} noValidate>
+
+              {/* Mobile field */}
+              <div style={{ marginBottom: '40px' }}>
+                <label style={labelStyle} htmlFor="mobile">Mobile Number</label>
+                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #8B8680' }}
+                  ref={el => { if (el) el._input = el.querySelector('input'); }}>
+                  <span style={{
+                    fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '16px',
+                    color: '#8B8680', paddingTop: '14px', paddingBottom: '14px',
+                    paddingRight: '8px', flexShrink: 0,
+                  }}>+91</span>
+                  <input
+                    id="mobile" type="tel" required maxLength={10}
+                    value={mobile}
+                    onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="98765 43210"
+                    style={{ ...inputStyle, borderBottom: 'none', flex: 1 }}
+                    onFocus={e => { e.target.closest('div').style.borderColor = '#C9A84C'; }}
+                    onBlur={e => { e.target.closest('div').style.borderColor = '#8B8680'; }}
+                  />
+                </div>
+                <p style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
+                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                }}>Saved for check-in records only — not used for SMS</p>
+              </div>
+
+              {/* Email field */}
+              <div style={{ marginBottom: '48px' }}>
+                <label style={labelStyle} htmlFor="email">Email Address</label>
                 <input
-                  id="mobile"
-                  type="tel"
-                  required
-                  maxLength={10}
-                  value={mobile}
-                  onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="98765 43210"
-                  style={{ ...inputStyle, borderBottom: 'none', flex: 1 }}
-                  onFocus={e => { e.target.parentElement.style.borderColor = '#C9A84C'; }}
-                  onBlur={e => { e.target.parentElement.style.borderColor = '#8B8680'; }}
+                  id="email" type="email" required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  style={inputStyle}
+                  onFocus={e => { e.target.style.borderBottomColor = '#C9A84C'; }}
+                  onBlur={e => { e.target.style.borderBottomColor = '#8B8680'; }}
                 />
+                <p style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
+                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                }}>Your OTP will be sent here</p>
               </div>
 
               <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  marginTop: '48px', width: '100%',
-                  padding: '18px 0', background: '#0A0A0A',
-                  border: 'none', cursor: 'pointer',
-                  fontFamily: '"Jost", sans-serif', fontWeight: 300,
-                  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
-                  color: '#F8F5F0', transition: 'background 0.4s ease',
-                }}
+                type="submit" disabled={loading}
+                style={primaryBtn}
                 onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
               >
-                {loading ? 'Sending…' : 'Send OTP →'}
+                {loading ? 'Sending Code…' : 'Send Booking Code →'}
               </button>
             </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp}>
-              <p style={{
-                fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '13px',
-                color: '#8B8680', letterSpacing: '0.04em', marginBottom: '32px',
+          )}
+
+          {/* ── STEP 2: OTP entry ── */}
+          {step === 2 && (
+            <form onSubmit={handleVerifyOtp} noValidate>
+
+              {/* Confirmation message */}
+              <div style={{
+                display: 'flex', gap: '12px', alignItems: 'flex-start',
+                marginBottom: '40px',
+                padding: '18px 20px',
+                background: 'rgba(201,168,76,0.05)',
+                border: '1px solid rgba(201,168,76,0.2)',
               }}>
-                We sent a 6-digit OTP to +91 {mobile}.
-              </p>
-              <label style={labelStyle}>One-Time Password</label>
+                <span style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>✉️</span>
+                <p style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '13px',
+                  color: '#6E6963', letterSpacing: '0.03em', lineHeight: 1.8, margin: 0,
+                }}>
+                  A 6-digit code was sent to{' '}
+                  <strong style={{ fontWeight: 400, color: '#0A0A0A' }}>{email}</strong>.
+                  <br />Check your inbox (and spam folder).
+                  Code expires in <strong style={{ fontWeight: 400 }}>10 minutes</strong>.
+                </p>
+              </div>
+
+              {/* OTP input */}
+              <label style={labelStyle} htmlFor="otp">One-Time Password</label>
               <input
-                id="otp"
-                type="text"
-                required
-                maxLength={6}
+                id="otp" type="text" inputMode="numeric" required maxLength={6}
                 value={otp}
                 onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="— — — — — —"
-                style={{ ...inputStyle, textAlign: 'center', fontSize: '32px', letterSpacing: '0.3em' }}
-                onFocus={e => { e.target.style.borderColor = '#C9A84C'; }}
-                onBlur={e => { e.target.style.borderColor = '#8B8680'; }}
-              />
-              <button
-                type="submit"
-                disabled={loading}
+                placeholder="· · · · · ·"
                 style={{
-                  marginTop: '48px', width: '100%',
-                  padding: '18px 0', background: '#0A0A0A',
-                  border: 'none', cursor: 'pointer',
-                  fontFamily: '"Jost", sans-serif', fontWeight: 300,
-                  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
-                  color: '#F8F5F0', transition: 'background 0.4s ease',
+                  ...inputStyle,
+                  textAlign: 'center',
+                  fontSize: '36px',
+                  letterSpacing: '0.35em',
+                  marginBottom: '48px',
                 }}
+                onFocus={e => { e.target.style.borderBottomColor = '#C9A84C'; }}
+                onBlur={e => { e.target.style.borderBottomColor = '#8B8680'; }}
+                autoFocus
+              />
+
+              <button
+                type="submit" disabled={loading}
+                style={primaryBtn}
                 onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
               >
                 {loading ? 'Verifying…' : 'Verify & Continue →'}
               </button>
+
+              {/* Change details */}
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => { setStep(1); setOtp(''); setDevOtp(null); }}
                 style={{
                   marginTop: '20px', width: '100%', background: 'none',
                   border: 'none', cursor: 'pointer',
@@ -248,10 +312,11 @@ const Login = () => {
                 onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#8B8680'; }}
               >
-                Change Number
+                ← Change Details
               </button>
             </form>
           )}
+
         </div>
       </AnimatedContent>
     </div>

@@ -23,6 +23,7 @@ function initDb() {
     CREATE TABLE IF NOT EXISTS otps (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       mobile TEXT,
+      email TEXT,
       otp_code TEXT,
       expires_at DATETIME,
       used BOOLEAN DEFAULT 0
@@ -44,6 +45,15 @@ function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
+
+  // Migrate existing otps table — add email column if missing
+  try {
+    db.exec(`ALTER TABLE otps ADD COLUMN email TEXT`);
+    console.log('DB migration: added email column to otps table.');
+  } catch {
+    // Column already exists — ignore
+  }
+
   console.log('SQLite database initialized.');
 }
 
