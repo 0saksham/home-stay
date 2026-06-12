@@ -1,27 +1,47 @@
-require('dotenv').config({ path: '../.env' });
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+require('dotenv').config();   // Render injects env vars natively — no path needed
 
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
+const express = require('express');
+const cors    = require('cors');
+const path    = require('path');
+
+const authRoutes    = require('./routes/auth');
+const userRoutes    = require('./routes/user');
 const bookingRoutes = require('./routes/booking');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+/* ── CORS ── */
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL, // set this to your Vercel URL in Render env vars
+].filter(Boolean); // remove undefined if FRONTEND_URL not set
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    // Also allow any *.vercel.app subdomain automatically
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+    callback(new Error(`CORS: ${origin} not allowed`));
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+/* ── Routes ── */
+app.use('/api/auth',    authRoutes);
+app.use('/api/user',    userRoutes);
 app.use('/api/booking', bookingRoutes);
 
-// Simple health check route
+/* ── Health check — used by client wake-up ping ── */
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'The Nest Stay API is running' });
+  res.status(200).json({ status: 'awake', service: 'House of Marigold', ts: Date.now() });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`[House of Marigold] Server running on port ${PORT}`);
 });

@@ -5,7 +5,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import toast from 'react-hot-toast';
 import { differenceInDays, addDays } from 'date-fns';
 import { AuthContext } from '../context/AuthContext';
-import api from '../utils/api';
+import { useApi } from '../hooks/useApi';
+import ServerWakeUp from '../components/ServerWakeUp';
 import AgreementModal from '../components/AgreementModal';
 import AnimatedContent from '../components/ReactBits/Animations/AnimatedContent/AnimatedContent';
 import CountUp from '../components/ReactBits/TextAnimations/CountUp/CountUp';
@@ -72,7 +73,7 @@ const Booking = () => {
   const [checkout, setCheckout] = useState(addDays(new Date(), 3));
   const [specialRequests, setSpecialRequests] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { call, isWakingUp, isLoading: loading } = useApi();
 
   useEffect(() => {
     if (!user)       navigate('/login', { state: { from: { pathname: '/booking' } } });
@@ -96,9 +97,8 @@ const Booking = () => {
   };
 
   const handleConfirm = async () => {
-    setLoading(true);
     try {
-      const res = await api.post('/booking/confirm', {
+      const data = await call('POST', '/api/booking/confirm', {
         room_type: selectedRoom,
         checkin_date: checkin.toISOString(),
         checkout_date: checkout.toISOString(),
@@ -106,9 +106,8 @@ const Booking = () => {
         special_requests: specialRequests,
       });
       setIsModalOpen(false);
-      navigate(`/confirmation/${res.data.id}`);
+      navigate(`/confirmation/${data.id}`);
     } catch { toast.error('Failed to confirm booking. Try again.'); }
-    finally { setLoading(false); }
   };
 
   if (!user?.name) return null;
@@ -123,7 +122,9 @@ const Booking = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8F5F0', padding: '120px 8.33% 80px', scrollSnapAlign: 'start' }}>
+    <>
+      <ServerWakeUp isVisible={isWakingUp} />
+      <div style={{ minHeight: '100vh', background: '#F8F5F0', padding: '120px 8.33% 80px', scrollSnapAlign: 'start' }}>
       <BookingSteps active={2} />
 
       <AnimatedContent distance={40} direction="vertical" reverse={false}
@@ -364,6 +365,7 @@ const Booking = () => {
         />
       )}
     </div>
+    </>
   );
 };
 

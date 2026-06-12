@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import ServerWakeUp from './components/ServerWakeUp';
 
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -121,6 +123,12 @@ const Footer = () => {
 };
 
 function App() {
+  // Silent ping on mount — wakes Render free-tier server BEFORE user clicks anything
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/health`)
+      .catch(() => {}); // fire-and-forget, ignore errors
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

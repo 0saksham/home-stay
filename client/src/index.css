@@ -55,6 +55,32 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: scaleY(1); transform-origin: bottom; opacity: 0; }
 }
 
+/* ─── Server Wake-Up Overlay Animations ─── */
+@keyframes wakeUpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes marigoldPulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%       { transform: scale(1.18); opacity: 0.8; }
+}
+
+@keyframes wakeUpProgress {
+  from { width: 0%;   }
+  to   { width: 100%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes gentlePulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.1); }
+}
+
 /* ─── Reusable Layout Utilities ─── */
 .hom-container {
   max-width: 1280px;

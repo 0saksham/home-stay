@@ -2,7 +2,8 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
-import api from '../utils/api';
+import { useApi } from '../hooks/useApi';
+import ServerWakeUp from '../components/ServerWakeUp';
 import AnimatedContent from '../components/ReactBits/Animations/AnimatedContent/AnimatedContent';
 
 /* Reusable step indicator (identical to Login's) */
@@ -40,7 +41,7 @@ const BookingSteps = ({ active }) => {
 const Profile = () => {
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { call, isWakingUp, isLoading: loading } = useApi();
   const [formData, setFormData] = useState({
     name: '', email: '', age: '', city: '',
     id_type: 'Aadhaar', id_number: '', guests_count: 1,
@@ -63,16 +64,14 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     try {
-      const res = await api.post('/user/profile', formData);
-      localStorage.setItem('token', res.data.token);
-      const userRes = await api.get('/user/me');
-      setUser(userRes.data);
+      const data = await call('POST', '/api/user/profile', formData);
+      localStorage.setItem('token', data.token);
+      const me = await call('GET', '/api/user/me');
+      setUser(me);
       toast.success('Profile saved');
       navigate('/booking');
     } catch { toast.error('Failed to save profile'); }
-    finally { setLoading(false); }
   };
 
   const inputStyle = {
@@ -106,7 +105,9 @@ const Profile = () => {
   );
 
   return (
-    <div style={{
+    <>
+      <ServerWakeUp isVisible={isWakingUp} />
+      <div style={{
       minHeight: '100vh', background: '#F8F5F0',
       padding: '120px 8.33% 80px',
       scrollSnapAlign: 'start',
@@ -204,6 +205,7 @@ const Profile = () => {
         </div>
       </AnimatedContent>
     </div>
+    </>
   );
 };
 

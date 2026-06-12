@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import api from '../utils/api';
+import { useApi } from '../hooks/useApi';
+import ServerWakeUp from '../components/ServerWakeUp';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
@@ -13,12 +14,13 @@ const Confirmation = () => {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const { call, isWakingUp } = useApi();
 
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await api.get(`/booking/${id}`);
-        setBooking(res.data);
+        const data = await call('GET', `/api/booking/${id}`);
+        setBooking(data);
       } catch {
         toast.error('Could not fetch booking details');
       } finally {
@@ -26,7 +28,7 @@ const Confirmation = () => {
       }
     };
     fetchBooking();
-  }, [id]);
+  }, [id]); // eslint-disable-line
 
   /* Canvas confetti on mount */
   useEffect(() => {
@@ -72,15 +74,18 @@ const Confirmation = () => {
   };
 
   if (loading) return (
-    <div style={{
-      minHeight: '100vh', background: '#0A0A0A',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: '"Jost", sans-serif', fontWeight: 200,
-      fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
-      color: 'rgba(248,245,240,0.4)',
-    }}>
-      Loading…
-    </div>
+    <>
+      <ServerWakeUp isVisible={isWakingUp} />
+      <div style={{
+        minHeight: '100vh', background: '#0A0A0A',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: '"Jost", sans-serif', fontWeight: 200,
+        fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+        color: 'rgba(248,245,240,0.4)',
+      }}>
+        Loading…
+      </div>
+    </>
   );
 
   if (!booking) return (
@@ -102,7 +107,9 @@ const Confirmation = () => {
   ];
 
   return (
-    <section style={{
+    <>
+      <ServerWakeUp isVisible={isWakingUp} />
+      <section style={{
       minHeight: '100vh',
       background: '#0A0A0A',
       display: 'flex',
@@ -230,6 +237,7 @@ const Confirmation = () => {
         </button>
       </div>
     </section>
+    </>
   );
 };
 

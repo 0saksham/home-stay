@@ -1,10 +1,14 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "House of Marigold — Booking API",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +21,8 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^8.0.11",
     "pdfkit": "^0.19.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

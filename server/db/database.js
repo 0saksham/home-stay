@@ -1,8 +1,9 @@
 const Database = require('better-sqlite3');
-const path = require('path');
+const path     = require('path');
 
-const dbPath = path.resolve(__dirname, 'nest_stay.db');
-const db = new Database(dbPath);
+// Use process.cwd() so the path is always absolute and correct on Render
+const dbPath = path.join(process.cwd(), 'database.sqlite');
+const db     = new Database(dbPath);
 
 // Initialize Schema
 function initDb() {
@@ -46,7 +47,7 @@ function initDb() {
     );
   `);
 
-  // Migrate existing otps table — add email column if missing
+  // Migrate: add email column to otps if it was created without it
   try {
     db.exec(`ALTER TABLE otps ADD COLUMN email TEXT`);
     console.log('DB migration: added email column to otps table.');
@@ -54,7 +55,7 @@ function initDb() {
     // Column already exists — ignore
   }
 
-  console.log('SQLite database initialized.');
+  console.log(`SQLite database initialised at: ${dbPath}`);
 }
 
 initDb();
