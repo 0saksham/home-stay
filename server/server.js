@@ -12,21 +12,11 @@ const app  = express();
 const PORT = process.env.PORT || 5000;
 
 /* ── CORS ── */
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  process.env.FRONTEND_URL, // set this to your Vercel URL in Render env vars
-].filter(Boolean); // remove undefined if FRONTEND_URL not set
-
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, server-to-server)
-    if (!origin) return callback(null, true);
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    // Also allow any *.vercel.app subdomain automatically
-    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
-    callback(new Error(`CORS: ${origin} not allowed`));
-  },
+  origin: [
+    'http://localhost:5173',
+    process.env.FRONTEND_URL,
+  ],
   credentials: true,
 }));
 
