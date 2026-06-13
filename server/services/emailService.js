@@ -11,7 +11,7 @@ async function sendBookingEmail(pdfPath, bookingRef) {
     });
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: '"House of Marigold" <sgodiyal00@gmail.com>',
       to: process.env.ADMIN_EMAIL,
       subject: `New Booking Confirmed: ${bookingRef}`,
       text: `A new booking (${bookingRef}) has been confirmed. Please find the receipt attached.`,
