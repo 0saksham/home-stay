@@ -1,20 +1,9 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const db = require('../db/database');
+const { sendOTPEmail } = require('../services/emailService');
 
 const router = express.Router();
-
-/* ─────────────────────────────────────────
-   Nodemailer transporter (Gmail SMTP)
-───────────────────────────────────────── */
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
 
 /* ─────────────────────────────────────────
    OTP email HTML template
@@ -86,7 +75,7 @@ function buildOtpEmail(otp, mobile) {
               <p style="margin:0;font-size:10px;letter-spacing:0.1em;
                         color:rgba(248,245,240,0.2);line-height:1.8;">
                 © ${new Date().getFullYear()} House of Marigold · Mussoorie, Uttarakhand<br/>
-                Direct reservations &amp; enquiries: ${process.env.GMAIL_USER || 'contact@houseofmarigold.in'}
+                Direct reservations &amp; enquiries: ${process.env.ADMIN_EMAIL || 'contact@houseofmarigold.in'}
               </p>
             </td>
           </tr>
@@ -135,15 +124,9 @@ router.post('/send-otp', async (req, res) => {
     return res.json({ message: 'OTP sent (dev mode)', devOtp: otp });
   }
 
-  // Production — send via Gmail SMTP
+  // Production — send via Resend
   try {
-    const { subject, html } = buildOtpEmail(otp, mobile);
-    await transporter.sendMail({
-      from: `"House of Marigold" <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject,
-      html,
-    });
+    await sendOTPEmail(email, otp);
     return res.json({ message: 'OTP sent to your email' });
   } catch (err) {
     console.error('[Email OTP Error]', err.message);
