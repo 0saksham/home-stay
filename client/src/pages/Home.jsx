@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import SplitText from '../components/ReactBits/TextAnimations/SplitText/SplitText';
 import TextType from '../components/ReactBits/TextAnimations/TextType/TextType';
 import ScrollVelocity from '../components/ReactBits/TextAnimations/ScrollVelocity/ScrollVelocity';
-import Beams from '../components/ReactBits/Backgrounds/Beams/Beams';
 import CountUp from '../components/ReactBits/TextAnimations/CountUp/CountUp';
 import FadeContent from '../components/ReactBits/Animations/FadeContent/FadeContent';
 
@@ -534,14 +533,32 @@ const Home = () => {
           {/* Right — Beams + features list */}
           <div style={{
             height: '100%', position: 'relative',
-            background: '#1A2E1A', overflow: 'hidden', minHeight: '600px',
+            background: 'linear-gradient(135deg, #0f1f16 0%, #163223 45%, #0b130f 100%)',
+            overflow: 'hidden', minHeight: '600px',
           }}>
-            <div style={{ position: 'absolute', inset: 0 }}>
-              <Beams
-                beamWidth={1.5} beamHeight={15} beamNumber={8}
-                lightColor="#C9A84C" speed={1.5} noiseIntensity={1.2}
-                scale={0.15} rotation={30}
-              />
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div style={{
+                position: 'absolute', inset: '-20% -15% auto auto', width: '58%', height: '58%',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(201,168,76,0.26) 0%, rgba(201,168,76,0.08) 32%, transparent 72%)',
+                filter: 'blur(24px)',
+                animation: 'marigoldDrift 18s ease-in-out infinite',
+              }} />
+              <div style={{
+                position: 'absolute', inset: 'auto auto -18% -14%', width: '62%', height: '62%',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(92,164,120,0.22) 0%, rgba(92,164,120,0.06) 34%, transparent 72%)',
+                filter: 'blur(30px)',
+                animation: 'marigoldDrift 22s ease-in-out infinite reverse',
+              }} />
+              <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+                backgroundSize: '64px 64px',
+                opacity: 0.18,
+                maskImage: 'radial-gradient(circle at center, black 30%, transparent 100%)',
+                WebkitMaskImage: 'radial-gradient(circle at center, black 30%, transparent 100%)',
+              }} />
             </div>
             {/* Deep green vignette */}
             <div style={{
