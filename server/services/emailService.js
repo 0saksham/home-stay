@@ -3,11 +3,17 @@ const nodemailer = require('nodemailer');
 async function sendBookingEmail(pdfPath, bookingRef) {
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp-relay.brevo.com',
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS
-      }
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      family: 4,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
 
     const mailOptions = {
