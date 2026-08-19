@@ -11,15 +11,13 @@ const bookingRoutes = require('./routes/booking');
 const app  = express();
 const PORT = process.env.PORT || 5000;
 
-/* ── CORS: Allow all origins so Vercel & localhost work seamlessly ── */
 app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+    "http://localhost:5173",  // local dev
+    "https://home-stay-psi.vercel.app"  // production frontend
+  ],
+  credentials: true
 }));
-
-app.options(/.*/, cors());
 
 app.use(express.json());
 
