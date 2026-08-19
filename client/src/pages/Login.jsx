@@ -46,22 +46,22 @@ const BookingSteps = ({ active }) => {
 
 /* ── Shared style tokens ── */
 const labelStyle = {
-  fontFamily: '"Jost", sans-serif', fontWeight: 200,
-  fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase',
-  color: '#8B8680', display: 'block', marginBottom: '8px',
+  fontFamily: '"Jost", sans-serif', fontWeight: 500,
+  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+  color: '#44403C', display: 'block', marginBottom: '8px',
 };
 const inputStyle = {
   width: '100%', background: 'transparent',
-  border: 'none', borderBottom: '1px solid #8B8680',
+  border: 'none', borderBottom: '1px solid #78716C',
   padding: '14px 0',
-  fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: '22px',
+  fontFamily: '"Cormorant Garamond", serif', fontWeight: 500, fontSize: '22px',
   color: '#0A0A0A', outline: 'none', borderRadius: 0,
   transition: 'border-color 0.3s ease', letterSpacing: '0.02em',
 };
 const primaryBtn = {
   width: '100%', padding: '18px 0', background: '#0A0A0A',
   border: 'none', cursor: 'pointer',
-  fontFamily: '"Jost", sans-serif', fontWeight: 300,
+  fontFamily: '"Jost", sans-serif', fontWeight: 400,
   fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
   color: '#F8F5F0', transition: 'background 0.4s ease',
 };
@@ -165,8 +165,8 @@ const Login = () => {
                   />
                 </div>
                 <p style={{
-                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
-                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                  fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: '12px',
+                  color: '#57534E', letterSpacing: '0.03em', margin: '8px 0 0',
                 }}>Saved for check-in records only</p>
               </div>
 
@@ -182,8 +182,8 @@ const Login = () => {
                   onBlur={e => { e.target.style.borderBottomColor = '#8B8680'; }}
                 />
                 <p style={{
-                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
-                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                  fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: '12px',
+                  color: '#57534E', letterSpacing: '0.03em', margin: '8px 0 0',
                 }}>Used for booking confirmations and receipts</p>
               </div>
 

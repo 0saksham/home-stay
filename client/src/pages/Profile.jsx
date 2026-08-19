@@ -6,7 +6,7 @@ import { useApi } from '../hooks/useApi';
 import ServerWakeUp from '../components/ServerWakeUp';
 import AnimatedContent from '../components/ReactBits/Animations/AnimatedContent/AnimatedContent';
 
-/* Reusable step indicator (identical to Login's) */
+/* Reusable step indicator */
 const BookingSteps = ({ active }) => {
   const steps = ['Login', 'Profile', 'Select Room', 'Confirm'];
   return (
@@ -23,9 +23,9 @@ const BookingSteps = ({ active }) => {
                 boxShadow: current ? '0 0 0 2px rgba(201,168,76,0.25)' : 'none',
               }} />
               <span style={{
-                fontFamily: '"Jost", sans-serif', fontWeight: current ? 300 : 200,
+                fontFamily: '"Jost", sans-serif', fontWeight: current ? 400 : 300,
                 fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: done || current ? (current ? '#C9A84C' : '#0A0A0A') : '#8B8680',
+                color: done || current ? (current ? '#C9A84C' : '#0A0A0A') : '#57534E',
               }}>{step}</span>
             </div>
             {i < steps.length - 1 && (
@@ -37,6 +37,37 @@ const BookingSteps = ({ active }) => {
     </div>
   );
 };
+
+/* Styles & Focus Handlers outside component to prevent re-mount focus loss */
+const inputStyle = {
+  width: '100%', background: 'transparent',
+  border: 'none', borderBottom: '1px solid #78716C',
+  padding: '14px 0', fontFamily: '"Cormorant Garamond", serif',
+  fontWeight: 500, fontSize: '20px', color: '#0A0A0A',
+  outline: 'none', borderRadius: 0,
+  transition: 'border-color 0.3s ease',
+};
+const labelStyle = {
+  fontFamily: '"Jost", sans-serif', fontWeight: 500,
+  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+  color: '#44403C', display: 'block', marginBottom: '6px',
+};
+const focusIn = e => { e.target.style.borderColor = '#C9A84C'; };
+const focusOut = e => { e.target.style.borderColor = '#78716C'; };
+
+const Field = ({ label, name, type = 'text', required, min, max, placeholder, value, onChange, children }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '40px' }}>
+    <label style={labelStyle} htmlFor={name}>{label}</label>
+    {children || (
+      <input
+        id={name} name={name} type={type} required={required}
+        min={min} max={max} placeholder={placeholder}
+        value={value} onChange={onChange}
+        style={inputStyle} onFocus={focusIn} onBlur={focusOut}
+      />
+    )}
+  </div>
+);
 
 const Profile = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -69,142 +100,112 @@ const Profile = () => {
       localStorage.setItem('token', data.token);
       const me = await call('GET', '/api/user/me');
       setUser(me);
-      toast.success('Profile saved');
+      toast.success('Profile saved successfully ✓');
       navigate('/booking');
     } catch { toast.error('Failed to save profile'); }
   };
-
-  const inputStyle = {
-    width: '100%', background: 'transparent',
-    border: 'none', borderBottom: '1px solid #8B8680',
-    padding: '14px 0', fontFamily: '"Cormorant Garamond", serif',
-    fontWeight: 300, fontSize: '20px', color: '#0A0A0A',
-    outline: 'none', borderRadius: 0,
-    transition: 'border-color 0.3s ease',
-  };
-  const labelStyle = {
-    fontFamily: '"Jost", sans-serif', fontWeight: 200,
-    fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#8B8680', display: 'block', marginBottom: '6px',
-  };
-  const focusIn = e => { e.target.style.borderColor = '#C9A84C'; };
-  const focusOut = e => { e.target.style.borderColor = '#8B8680'; };
-
-  const Field = ({ label, name, type = 'text', required, min, max, placeholder, children }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '40px' }}>
-      <label style={labelStyle} htmlFor={name}>{label}</label>
-      {children || (
-        <input
-          id={name} name={name} type={type} required={required}
-          min={min} max={max} placeholder={placeholder}
-          value={formData[name]} onChange={handleChange}
-          style={inputStyle} onFocus={focusIn} onBlur={focusOut}
-        />
-      )}
-    </div>
-  );
 
   return (
     <>
       <ServerWakeUp isVisible={isWakingUp} />
       <div style={{
-      minHeight: '100vh', background: '#F8F5F0',
-      padding: '120px 8.33% 80px',
-      scrollSnapAlign: 'start',
-    }}>
-      <BookingSteps active={1} />
+        minHeight: '100vh', background: '#F8F5F0',
+        padding: '120px 8.33% 80px',
+        scrollSnapAlign: 'start',
+      }}>
+        <BookingSteps active={1} />
 
-      <AnimatedContent distance={40} direction="vertical" reverse={false}
-        config={{ tension: 80, friction: 20 }} initialOpacity={0} animateOpacity scale={0.97} animateScale>
+        <AnimatedContent distance={40} direction="vertical" reverse={false}
+          config={{ tension: 80, friction: 20 }} initialOpacity={0} animateOpacity scale={0.97} animateScale>
 
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{
-            fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '10px',
-            letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: '#C9A84C', display: 'block', marginBottom: '24px',
-          }}>Step 2 of 4</span>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <span style={{
+              fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: '10px',
+              letterSpacing: '0.2em', textTransform: 'uppercase',
+              color: '#B48A2C', display: 'block', marginBottom: '24px',
+            }}>Step 2 of 4</span>
 
-          <h1 style={{
-            fontFamily: '"Cormorant Garamond", serif', fontWeight: 300,
-            fontSize: '52px', lineHeight: 1.05, color: '#0A0A0A', marginBottom: '8px',
-          }}>
-            Guest<br /><em>Profile</em>
-          </h1>
+            <h1 style={{
+              fontFamily: '"Cormorant Garamond", serif', fontWeight: 300,
+              fontSize: '52px', lineHeight: 1.05, color: '#0A0A0A', marginBottom: '8px',
+            }}>
+              Guest<br /><em>Profile</em>
+            </h1>
 
-          <div style={{ width: '40px', height: '1px', background: '#C9A84C', margin: '32px 0 16px' }} />
+            <div style={{ width: '40px', height: '1px', background: '#C9A84C', margin: '32px 0 16px' }} />
 
-          <p style={{
-            fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '14px',
-            lineHeight: 1.9, letterSpacing: '0.04em', color: '#8B8680',
-            marginBottom: '56px', maxWidth: '480px',
-          }}>
-            Please complete your profile to proceed. This information is required for check-in formalities.
-          </p>
+            <p style={{
+              fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: '14px',
+              lineHeight: 1.9, letterSpacing: '0.04em', color: '#57534E',
+              marginBottom: '56px', maxWidth: '480px',
+            }}>
+              Please complete your profile to proceed. This information is required for check-in formalities.
+            </p>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
-              <Field label="Full Name" name="name" required placeholder="Riya Sharma" />
-              <Field label="Email Address" name="email" type="email" required placeholder="riya@example.com" />
-              <Field label="Age" name="age" type="number" required min="18" max="120" placeholder="28" />
-              <Field label="City / State" name="city" required placeholder="Delhi, NCR" />
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 48px' }}>
+                <Field label="Full Name" name="name" required placeholder="Riya Sharma" value={formData.name} onChange={handleChange} />
+                <Field label="Email Address" name="email" type="email" required placeholder="riya@example.com" value={formData.email} onChange={handleChange} />
+                <Field label="Age" name="age" type="number" required min="18" max="120" placeholder="28" value={formData.age} onChange={handleChange} />
+                <Field label="City / State" name="city" required placeholder="Delhi, NCR" value={formData.city} onChange={handleChange} />
 
-              <Field label="ID Proof Type" name="id_type" required>
-                <select
-                  id="id_type" name="id_type" value={formData.id_type} onChange={handleChange}
-                  style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', fontSize: '16px', fontFamily: '"Jost", sans-serif', fontWeight: 200 }}
-                  onFocus={focusIn} onBlur={focusOut}
-                >
-                  {['Aadhaar', 'PAN', 'Passport', 'Driving License'].map(v => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </Field>
+                <Field label="ID Proof Type" name="id_type" required value={formData.id_type} onChange={handleChange}>
+                  <select
+                    id="id_type" name="id_type" value={formData.id_type} onChange={handleChange}
+                    style={{ ...inputStyle, cursor: 'pointer', appearance: 'none', fontSize: '16px', fontFamily: '"Jost", sans-serif', fontWeight: 300 }}
+                    onFocus={focusIn} onBlur={focusOut}
+                  >
+                    {['Aadhaar', 'PAN', 'Passport', 'Driving License'].map(v => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </Field>
 
-              <Field label="ID Number" name="id_number" required placeholder="XXXX XXXX XXXX" />
+                <Field label="ID Number" name="id_number" required placeholder="XXXX XXXX XXXX" value={formData.id_number} onChange={handleChange} />
 
-              <div style={{ gridColumn: '1 / -1', marginBottom: '40px' }}>
-                <label style={labelStyle}>Number of Guests</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '24px', paddingTop: '8px' }}>
-                  {[1, 2, 3, 4, 5, 6].map(n => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, guests_count: n }))}
-                      style={{
-                        width: '40px', height: '40px',
-                        background: formData.guests_count === n ? '#0A0A0A' : 'transparent',
-                        border: `1px solid ${formData.guests_count === n ? '#0A0A0A' : '#8B8680'}`,
-                        color: formData.guests_count === n ? '#F8F5F0' : '#8B8680',
-                        fontFamily: '"Cormorant Garamond", serif', fontWeight: 300,
-                        fontSize: '20px', cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
+                <div style={{ gridColumn: '1 / -1', marginBottom: '40px' }}>
+                  <label style={labelStyle}>Number of Guests</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '24px', paddingTop: '8px' }}>
+                    {[1, 2, 3, 4, 5, 6].map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, guests_count: n }))}
+                        style={{
+                          width: '40px', height: '40px',
+                          background: formData.guests_count === n ? '#0A0A0A' : 'transparent',
+                          border: `1px solid ${formData.guests_count === n ? '#0A0A0A' : '#78716C'}`,
+                          color: formData.guests_count === n ? '#F8F5F0' : '#44403C',
+                          fontFamily: '"Cormorant Garamond", serif', fontWeight: 500,
+                          fontSize: '20px', cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '20px 64px', background: '#0A0A0A', border: 'none',
-                cursor: 'pointer', fontFamily: '"Jost", sans-serif', fontWeight: 300,
-                fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: '#F8F5F0', transition: 'background 0.4s ease',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
-            >
-              {loading ? 'Saving…' : 'Save & Continue →'}
-            </button>
-          </form>
-        </div>
-      </AnimatedContent>
-    </div>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  padding: '20px 64px', background: '#0A0A0A', border: 'none',
+                  cursor: 'pointer', fontFamily: '"Jost", sans-serif', fontWeight: 400,
+                  fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                  color: '#F8F5F0', transition: 'background 0.4s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
+              >
+                {loading ? 'Saving…' : 'Save & Continue →'}
+              </button>
+            </form>
+          </div>
+        </AnimatedContent>
+      </div>
     </>
   );
 };

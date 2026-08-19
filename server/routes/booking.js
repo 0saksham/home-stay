@@ -53,6 +53,15 @@ router.post('/confirm', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/my-bookings', authMiddleware, (req, res) => {
+  if (!req.user.id) {
+    return res.json([]);
+  }
+  const stmt = db.prepare('SELECT * FROM bookings WHERE user_id = ? ORDER BY id DESC');
+  const bookings = stmt.all(req.user.id);
+  res.json(bookings);
+});
+
 router.get('/:id', authMiddleware, (req, res) => {
   const stmt = db.prepare('SELECT * FROM bookings WHERE id = ? AND user_id = ?');
   const booking = stmt.get(req.params.id, req.user.id);

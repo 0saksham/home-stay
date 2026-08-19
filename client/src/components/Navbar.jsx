@@ -179,6 +179,21 @@ const Navbar = () => {
               </span>
             )}
             {user && (
+              <Link
+                to="/my-bookings"
+                style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '11px',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: '#F8F5F0', textDecoration: 'none',
+                  transition: 'color 0.3s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#F8F5F0'; }}
+              >
+                MY BOOKINGS
+              </Link>
+            )}
+            {user && (
               <button onClick={handleLogout} style={{
                 fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
                 letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -192,7 +207,7 @@ const Navbar = () => {
               </button>
             )}
             <Link
-              to="/login"
+              to="/booking"
               style={{
                 fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '11px',
                 letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -204,7 +219,7 @@ const Navbar = () => {
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)'; }}
             >
-              {user ? 'RESERVE' : 'RESERVE NOW'}
+              RESERVE NOW
             </Link>
           </div>
         )}
@@ -268,8 +283,21 @@ const Navbar = () => {
 
             <div style={{ width: '36px', height: '1px', background: 'rgba(201,168,76,0.3)' }} />
 
+            {user && (
+              <Link
+                to="/my-bookings"
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
+                  fontWeight: 300, fontSize: '32px', color: '#C9A84C',
+                  textDecoration: 'none'
+                }}
+              >
+                My Bookings
+              </Link>
+            )}
             <Link
-              to="/login"
+              to="/booking"
               onClick={() => setMobileOpen(false)}
               style={{
                 fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '11px',

@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Booking from './pages/Booking';
 import Confirmation from './pages/Confirmation';
+import MyBookings from './pages/MyBookings';
 
 import MagnetLines from './components/ReactBits/Animations/MagnetLines/MagnetLines';
 
@@ -133,6 +134,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/confirmation/:id" element={<Confirmation />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Footer />
