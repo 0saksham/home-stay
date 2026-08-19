@@ -69,59 +69,38 @@ const primaryBtn = {
 const Login = () => {
   const [mobile, setMobile] = useState('');
   const [email,  setEmail]  = useState('');
-  const [otp,    setOtp]    = useState('');
-  const [step,   setStep]   = useState(1);
-  const [devOtp, setDevOtp] = useState(null);
 
   const { call, isWakingUp, isLoading: loading } = useApi();
   const { login } = useContext(AuthContext);
   const navigate  = useNavigate();
   const location  = useLocation();
 
-  /* ── Step 1: send OTP to email ── */
-  const handleSendOtp = async (e) => {
+  /* ── Direct Login ── */
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (mobile.replace(/\D/g, '').length !== 10) {
+    const cleanMobile = mobile.replace(/\D/g, '');
+    const cleanEmail  = email.trim().toLowerCase();
+
+    if (cleanMobile.length !== 10) {
       toast.error('Enter a valid 10-digit mobile number');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       toast.error('Enter a valid email address');
       return;
     }
     try {
-      const data = await call('POST', '/api/auth/send-otp', {
-        mobile: mobile.replace(/\D/g, ''),
-        email:  email.trim().toLowerCase(),
-      });
-      toast.success(data.devOtp ? 'OTP shown below (dev mode)' : `OTP sent to ${email}`);
-      setStep(2);
-      if (data.devOtp) setDevOtp(data.devOtp);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to send OTP. Try again.');
-    }
-  };
-
-  /* ── Step 2: verify OTP ── */
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    if (otp.replace(/\D/g, '').length !== 6) {
-      toast.error('Enter the 6-digit OTP from your email');
-      return;
-    }
-    try {
-      const data = await call('POST', '/api/auth/verify-otp', {
-        mobile: mobile.replace(/\D/g, ''),
-        email:  email.trim().toLowerCase(),
-        otp:    otp.replace(/\D/g, ''),
+      const data = await call('POST', '/api/auth/login', {
+        mobile: cleanMobile,
+        email:  cleanEmail,
       });
       login(data.token, data.user);
-      toast.success('Email verified ✓');
+      toast.success('Logged in successfully ✓');
       navigate(data.isNewUser
         ? '/profile'
         : (location.state?.from?.pathname || '/booking'));
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Invalid OTP. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to log in. Try again.');
     }
   };
 
@@ -151,7 +130,7 @@ const Login = () => {
               letterSpacing: '0.2em', textTransform: 'uppercase',
               color: '#C9A84C', display: 'block', marginBottom: '24px',
             }}>
-              {step === 1 ? 'Step 1 of 4' : 'Verify Your Email'}
+              Step 1 of 4
             </span>
 
             {/* Heading */}
@@ -160,151 +139,63 @@ const Login = () => {
               fontSize: '52px', lineHeight: 1.05, letterSpacing: '-0.01em',
               color: '#0A0A0A', marginBottom: '8px',
             }}>
-              {step === 1
-                ? <><span>Welcome</span><br /><em style={{ color: '#C9A84C' }}>Back</em></>
-                : <><span>Enter</span><br /><em style={{ color: '#C9A84C' }}>Your Code</em></>}
+              <span>Welcome</span><br /><em style={{ color: '#C9A84C' }}>Back</em>
             </h1>
 
             <div style={{ width: '40px', height: '1px', background: '#C9A84C', margin: '32px 0 48px' }} />
 
-            {/* DEV MODE banner */}
-            {devOtp && (
-              <div style={{
-                background: 'rgba(201,168,76,0.07)',
-                border: '1px solid rgba(201,168,76,0.3)',
-                padding: '14px 18px', marginBottom: '32px',
-                display: 'flex', alignItems: 'center', gap: '12px',
-              }}>
-                <span style={{ fontSize: '18px' }}>🧪</span>
-                <span style={{
-                  fontFamily: '"Jost", sans-serif', fontWeight: 300,
-                  fontSize: '12px', letterSpacing: '0.1em', color: '#C9A84C',
-                }}>
-                  DEV MODE — Your OTP is{' '}
-                  <strong style={{ fontSize: '16px', letterSpacing: '0.15em' }}>{devOtp}</strong>
-                </span>
-              </div>
-            )}
+            {/* Direct Login Form */}
+            <form onSubmit={handleLogin} noValidate>
 
-            {/* ── STEP 1: Mobile + Email ── */}
-            {step === 1 && (
-              <form onSubmit={handleSendOtp} noValidate>
-
-                <div style={{ marginBottom: '40px' }}>
-                  <label style={labelStyle} htmlFor="mobile">Mobile Number</label>
-                  <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #8B8680' }}>
-                    <span style={{
-                      fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '16px',
-                      color: '#8B8680', padding: '14px 8px 14px 0', flexShrink: 0,
-                    }}>+91</span>
-                    <input
-                      id="mobile" type="tel" required maxLength={10}
-                      value={mobile}
-                      onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="98765 43210"
-                      style={{ ...inputStyle, borderBottom: 'none', flex: 1 }}
-                      onFocus={e => { e.target.closest('div').style.borderColor = '#C9A84C'; }}
-                      onBlur={e => { e.target.closest('div').style.borderColor = '#8B8680'; }}
-                    />
-                  </div>
-                  <p style={{
-                    fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
-                    color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
-                  }}>Saved for check-in records only — not used for SMS</p>
-                </div>
-
-                <div style={{ marginBottom: '48px' }}>
-                  <label style={labelStyle} htmlFor="email">Email Address</label>
+              <div style={{ marginBottom: '40px' }}>
+                <label style={labelStyle} htmlFor="mobile">Mobile Number</label>
+                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #8B8680' }}>
+                  <span style={{
+                    fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: '16px',
+                    color: '#8B8680', padding: '14px 8px 14px 0', flexShrink: 0,
+                  }}>+91</span>
                   <input
-                    id="email" type="email" required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    style={inputStyle}
-                    onFocus={e => { e.target.style.borderBottomColor = '#C9A84C'; }}
-                    onBlur={e => { e.target.style.borderBottomColor = '#8B8680'; }}
+                    id="mobile" type="tel" required maxLength={10}
+                    value={mobile}
+                    onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="98765 43210"
+                    style={{ ...inputStyle, borderBottom: 'none', flex: 1 }}
+                    onFocus={e => { e.target.closest('div').style.borderColor = '#C9A84C'; }}
+                    onBlur={e => { e.target.closest('div').style.borderColor = '#8B8680'; }}
                   />
-                  <p style={{
-                    fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
-                    color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
-                  }}>Your OTP booking code will be sent here</p>
                 </div>
+                <p style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
+                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                }}>Saved for check-in records only</p>
+              </div>
 
-                <button
-                  type="submit" disabled={loading}
-                  style={primaryBtn}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
-                >
-                  {loading ? 'Sending Code…' : 'Send Booking Code →'}
-                </button>
-              </form>
-            )}
-
-            {/* ── STEP 2: OTP entry ── */}
-            {step === 2 && (
-              <form onSubmit={handleVerifyOtp} noValidate>
-
-                <div style={{
-                  display: 'flex', gap: '12px', alignItems: 'flex-start',
-                  marginBottom: '40px', padding: '18px 20px',
-                  background: 'rgba(201,168,76,0.05)',
-                  border: '1px solid rgba(201,168,76,0.2)',
-                }}>
-                  <span style={{ fontSize: '20px', flexShrink: 0, marginTop: '2px' }}>✉️</span>
-                  <p style={{
-                    fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '13px',
-                    color: '#6E6963', letterSpacing: '0.03em', lineHeight: 1.8, margin: 0,
-                  }}>
-                    A 6-digit code was sent to{' '}
-                    <strong style={{ fontWeight: 400, color: '#0A0A0A' }}>{email}</strong>.
-                    <br />Check your inbox and spam folder.
-                    Code expires in <strong style={{ fontWeight: 400 }}>10 minutes</strong>.
-                  </p>
-                </div>
-
-                <label style={labelStyle} htmlFor="otp">One-Time Password</label>
+              <div style={{ marginBottom: '48px' }}>
+                <label style={labelStyle} htmlFor="email">Email Address</label>
                 <input
-                  id="otp" type="text" inputMode="numeric" required maxLength={6}
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="· · · · · ·"
-                  style={{
-                    ...inputStyle,
-                    textAlign: 'center', fontSize: '36px',
-                    letterSpacing: '0.35em', marginBottom: '48px',
-                  }}
+                  id="email" type="email" required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  style={inputStyle}
                   onFocus={e => { e.target.style.borderBottomColor = '#C9A84C'; }}
                   onBlur={e => { e.target.style.borderBottomColor = '#8B8680'; }}
-                  autoFocus
                 />
+                <p style={{
+                  fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: '11px',
+                  color: '#8B8680', letterSpacing: '0.03em', margin: '8px 0 0',
+                }}>Used for booking confirmations and receipts</p>
+              </div>
 
-                <button
-                  type="submit" disabled={loading}
-                  style={primaryBtn}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
-                >
-                  {loading ? 'Verifying…' : 'Verify & Continue →'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => { setStep(1); setOtp(''); setDevOtp(null); }}
-                  style={{
-                    marginTop: '20px', width: '100%', background: 'none',
-                    border: 'none', cursor: 'pointer',
-                    fontFamily: '"Jost", sans-serif', fontWeight: 200,
-                    fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase',
-                    color: '#8B8680', transition: 'color 0.3s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#8B8680'; }}
-                >
-                  ← Change Details
-                </button>
-              </form>
-            )}
+              <button
+                type="submit" disabled={loading}
+                style={primaryBtn}
+                onMouseEnter={e => { e.currentTarget.style.background = '#1c1c1c'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#0A0A0A'; }}
+              >
+                {loading ? 'Logging in…' : 'Login & Continue →'}
+              </button>
+            </form>
 
           </div>
         </AnimatedContent>
